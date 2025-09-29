@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"ticket-booking-system/src/delivery/rest"
-	"ticket-booking-system/src/internal/repository"
-	"ticket-booking-system/src/internal/usecase"
-	"ticket-booking-system/src/utils"
-	"ticket-booking-system/src/utils/database"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest"
+	"github.com/ojaswiii/booking-manager/src/internal/repository"
+	"github.com/ojaswiii/booking-manager/src/internal/usecase"
+	"github.com/ojaswiii/booking-manager/src/utils"
+	"github.com/ojaswiii/booking-manager/src/utils/database"
 )
 
 func main() {

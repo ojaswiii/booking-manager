@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"ticket-booking-system/src/internal/domain"
-	domain_user "ticket-booking-system/src/internal/domain/user"
+	"github.com/ojaswiii/booking-manager/src/internal/domain"
+	domain_user "github.com/ojaswiii/booking-manager/src/internal/domain/user"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

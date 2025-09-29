@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	domain_event "ticket-booking-system/src/internal/domain/event"
-	domain_ticket "ticket-booking-system/src/internal/domain/ticket"
-	"ticket-booking-system/src/internal/repository"
-	"ticket-booking-system/src/utils"
+	domain_event "github.com/ojaswiii/booking-manager/src/internal/domain/event"
+	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
+	"github.com/ojaswiii/booking-manager/src/internal/repository"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/google/uuid"
 )

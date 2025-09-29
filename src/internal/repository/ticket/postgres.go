@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"ticket-booking-system/internal/domain"
-	domain_ticket "ticket-booking-system/internal/domain/ticket"
+	"github.com/ojaswiii/booking-manager/src/internal/domain"
+	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	domain_user "ticket-booking-system/src/internal/domain/user"
-	"ticket-booking-system/src/internal/repository"
-	"ticket-booking-system/src/utils"
+	domain_user "github.com/ojaswiii/booking-manager/src/internal/domain/user"
+	"github.com/ojaswiii/booking-manager/src/internal/repository"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/google/uuid"
 )

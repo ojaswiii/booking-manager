@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"ticket-booking-system/internal/domain"
-	domain_event "ticket-booking-system/internal/domain/event"
+	"github.com/ojaswiii/booking-manager/src/internal/domain"
+	domain_event "github.com/ojaswiii/booking-manager/src/internal/domain/event"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"

@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"ticket-booking-system/src/internal/repository"
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/internal/repository"
+	"github.com/ojaswiii/booking-manager/src/utils"
 )
 
 // UsecaseContainer holds all usecase instances

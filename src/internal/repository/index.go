@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"ticket-booking-system/src/internal/domain"
-	domain_booking "ticket-booking-system/src/internal/domain/booking"
-	domain_event "ticket-booking-system/src/internal/domain/event"
-	domain_ticket "ticket-booking-system/src/internal/domain/ticket"
-	domain_user "ticket-booking-system/src/internal/domain/user"
+	"github.com/ojaswiii/booking-manager/src/internal/domain"
+	domain_booking "github.com/ojaswiii/booking-manager/src/internal/domain/booking"
+	domain_event "github.com/ojaswiii/booking-manager/src/internal/domain/event"
+	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
+	domain_user "github.com/ojaswiii/booking-manager/src/internal/domain/user"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

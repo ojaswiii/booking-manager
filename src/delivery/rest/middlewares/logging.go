@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/utils"
 )
 
 // Logging middleware

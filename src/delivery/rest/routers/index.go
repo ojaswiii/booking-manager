@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"ticket-booking-system/src/delivery/rest/controllers"
-	"ticket-booking-system/src/delivery/rest/middlewares"
-	"ticket-booking-system/src/delivery/rest/routers/booking"
-	"ticket-booking-system/src/delivery/rest/routers/event"
-	"ticket-booking-system/src/delivery/rest/routers/user"
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/controllers"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/middlewares"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/routers/booking"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/routers/event"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/routers/user"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -62,7 +62,7 @@ func (r *Router) healthCheck(w http.ResponseWriter, req *http.Request) {
 	response := map[string]interface{}{
 		"status":    "healthy",
 		"timestamp": time.Now().UTC(),
-		"service":   "ticket-booking-system",
+		"service":   "github.com/ojaswiii/booking-manager/src",
 	}
 
 	w.Header().Set("Content-Type", "application/json")

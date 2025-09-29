@@ -1,4 +1,4 @@
-module ticket-booking-system
+module github.com/ojaswiii/booking-manager
 
 go 1.21
 

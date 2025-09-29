@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/redis/go-redis/v9"
 )

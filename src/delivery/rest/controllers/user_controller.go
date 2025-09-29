@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"ticket-booking-system/src/internal/usecase"
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/internal/usecase"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"

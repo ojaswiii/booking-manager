@@ -1,10 +1,10 @@
 package rest
 
 import (
-	"ticket-booking-system/src/delivery/rest/controllers"
-	"ticket-booking-system/src/delivery/rest/routers"
-	"ticket-booking-system/src/internal/usecase"
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/controllers"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/routers"
+	"github.com/ojaswiii/booking-manager/src/internal/usecase"
+	"github.com/ojaswiii/booking-manager/src/utils"
 )
 
 // RestContainer holds all REST delivery instances

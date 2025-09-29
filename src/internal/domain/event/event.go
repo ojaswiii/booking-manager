@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	domain_ticket "ticket-booking-system/src/internal/domain/ticket"
+	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
 
 	"github.com/google/uuid"
 )

@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	domain_booking "ticket-booking-system/src/internal/domain/booking"
-	domain_ticket "ticket-booking-system/src/internal/domain/ticket"
-	"ticket-booking-system/src/internal/repository"
-	"ticket-booking-system/src/utils"
+	domain_booking "github.com/ojaswiii/booking-manager/src/internal/domain/booking"
+	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
+	"github.com/ojaswiii/booking-manager/src/internal/repository"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/google/uuid"
 )

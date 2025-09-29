@@ -1,8 +1,8 @@
 package event
 
 import (
-	"ticket-booking-system/src/delivery/rest/controllers"
-	"ticket-booking-system/src/utils"
+	"github.com/ojaswiii/booking-manager/src/delivery/rest/controllers"
+	"github.com/ojaswiii/booking-manager/src/utils"
 
 	"github.com/gorilla/mux"
 )
