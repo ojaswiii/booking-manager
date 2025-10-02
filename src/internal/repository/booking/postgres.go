@@ -3,6 +3,8 @@ package repository_booking
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ojaswiii/booking-manager/src/internal/domain"
@@ -16,6 +18,42 @@ type postgresBookingRepository struct {
 	db *sqlx.DB
 }
 
+// uuidSliceToString converts []uuid.UUID to PostgreSQL array string format
+func uuidSliceToString(uuids []uuid.UUID) string {
+	if len(uuids) == 0 {
+		return "{}"
+	}
+
+	strs := make([]string, len(uuids))
+	for i, u := range uuids {
+		strs[i] = fmt.Sprintf("\"%s\"", u.String())
+	}
+	return "{" + strings.Join(strs, ",") + "}"
+}
+
+// stringToUUIDSlice converts PostgreSQL array string to []uuid.UUID
+func stringToUUIDSlice(s string) ([]uuid.UUID, error) {
+	// Remove curly braces
+	s = strings.Trim(s, "{}")
+	if s == "" {
+		return []uuid.UUID{}, nil
+	}
+
+	// Split by comma and parse each UUID
+	parts := strings.Split(s, ",")
+	uuids := make([]uuid.UUID, len(parts))
+	for i, part := range parts {
+		// Remove quotes if present
+		part = strings.Trim(part, "\"")
+		u, err := uuid.Parse(part)
+		if err != nil {
+			return nil, err
+		}
+		uuids[i] = u
+	}
+	return uuids, nil
+}
+
 // NewPostgresBookingRepository creates a new PostgreSQL booking repository
 func NewPostgresBookingRepository(db *sqlx.DB) *postgresBookingRepository {
 	return &postgresBookingRepository{db: db}
@@ -27,8 +65,11 @@ func (r *postgresBookingRepository) Create(ctx context.Context, booking *domain_
 		INSERT INTO bookings (id, user_id, event_id, ticket_ids, status, total_amount, created_at, updated_at, expires_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
+	// Convert UUID slice to PostgreSQL array string
+	ticketIDsStr := uuidSliceToString(booking.TicketIDs)
+
 	_, err := r.db.ExecContext(ctx, query, booking.ID, booking.UserID, booking.EventID,
-		booking.TicketIDs, booking.Status, booking.TotalAmount, booking.CreatedAt,
+		ticketIDsStr, booking.Status, booking.TotalAmount, booking.CreatedAt,
 		booking.UpdatedAt, booking.ExpiresAt)
 	return err
 }
@@ -41,13 +82,27 @@ func (r *postgresBookingRepository) GetByID(ctx context.Context, id uuid.UUID) (
 		WHERE id = $1`
 
 	var booking domain_booking.Booking
-	err := r.db.GetContext(ctx, &booking, query, id)
+	var ticketIDsStr string
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&booking.ID, &booking.UserID, &booking.EventID, &ticketIDsStr,
+		&booking.Status, &booking.TotalAmount, &booking.CreatedAt,
+		&booking.UpdatedAt, &booking.ExpiresAt)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
+
+	// Convert PostgreSQL array string back to UUID slice
+	ticketIDs, err := stringToUUIDSlice(ticketIDsStr)
+	if err != nil {
+		return nil, err
+	}
+	booking.TicketIDs = ticketIDs
+
 	return &booking, nil
 }
 
@@ -59,11 +114,35 @@ func (r *postgresBookingRepository) GetByUserID(ctx context.Context, userID uuid
 		WHERE user_id = $1
 		ORDER BY created_at DESC`
 
-	var bookings []*domain_booking.Booking
-	err := r.db.SelectContext(ctx, &bookings, query, userID)
+	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
+	var bookings []*domain_booking.Booking
+	for rows.Next() {
+		var booking domain_booking.Booking
+		var ticketIDsStr string
+
+		err := rows.Scan(
+			&booking.ID, &booking.UserID, &booking.EventID, &ticketIDsStr,
+			&booking.Status, &booking.TotalAmount, &booking.CreatedAt,
+			&booking.UpdatedAt, &booking.ExpiresAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert PostgreSQL array string back to UUID slice
+		ticketIDs, err := stringToUUIDSlice(ticketIDsStr)
+		if err != nil {
+			return nil, err
+		}
+		booking.TicketIDs = ticketIDs
+
+		bookings = append(bookings, &booking)
+	}
+
 	return bookings, nil
 }
 
@@ -75,11 +154,35 @@ func (r *postgresBookingRepository) GetByEventID(ctx context.Context, eventID uu
 		WHERE event_id = $1
 		ORDER BY created_at DESC`
 
-	var bookings []*domain_booking.Booking
-	err := r.db.SelectContext(ctx, &bookings, query, eventID)
+	rows, err := r.db.QueryContext(ctx, query, eventID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
+	var bookings []*domain_booking.Booking
+	for rows.Next() {
+		var booking domain_booking.Booking
+		var ticketIDsStr string
+
+		err := rows.Scan(
+			&booking.ID, &booking.UserID, &booking.EventID, &ticketIDsStr,
+			&booking.Status, &booking.TotalAmount, &booking.CreatedAt,
+			&booking.UpdatedAt, &booking.ExpiresAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert PostgreSQL array string back to UUID slice
+		ticketIDs, err := stringToUUIDSlice(ticketIDsStr)
+		if err != nil {
+			return nil, err
+		}
+		booking.TicketIDs = ticketIDs
+
+		bookings = append(bookings, &booking)
+	}
+
 	return bookings, nil
 }
 
@@ -133,10 +236,34 @@ func (r *postgresBookingRepository) GetExpiredBookings(ctx context.Context, befo
 		WHERE expires_at < $1 AND status = 'pending'
 		ORDER BY expires_at ASC`
 
-	var bookings []*domain_booking.Booking
-	err := r.db.SelectContext(ctx, &bookings, query, before)
+	rows, err := r.db.QueryContext(ctx, query, before)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
+	var bookings []*domain_booking.Booking
+	for rows.Next() {
+		var booking domain_booking.Booking
+		var ticketIDsStr string
+
+		err := rows.Scan(
+			&booking.ID, &booking.UserID, &booking.EventID, &ticketIDsStr,
+			&booking.Status, &booking.TotalAmount, &booking.CreatedAt,
+			&booking.UpdatedAt, &booking.ExpiresAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert PostgreSQL array string back to UUID slice
+		ticketIDs, err := stringToUUIDSlice(ticketIDsStr)
+		if err != nil {
+			return nil, err
+		}
+		booking.TicketIDs = ticketIDs
+
+		bookings = append(bookings, &booking)
+	}
+
 	return bookings, nil
 }

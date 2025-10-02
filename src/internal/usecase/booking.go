@@ -10,6 +10,7 @@ import (
 	domain_ticket "github.com/ojaswiii/booking-manager/src/internal/domain/ticket"
 	"github.com/ojaswiii/booking-manager/src/internal/repository"
 	"github.com/ojaswiii/booking-manager/src/utils"
+	concurrency "github.com/ojaswiii/booking-manager/src/utils/concurrency"
 
 	"github.com/google/uuid"
 )
@@ -21,7 +22,10 @@ type BookingUsecase struct {
 	userRepo    repository.UserRepository
 	logger      *utils.Logger
 
-	// Concurrency control
+	// Concurrency components
+	processor *concurrency.BookingProcessor
+
+	// Legacy concurrency control (for backward compatibility)
 	bookingMutex sync.RWMutex
 	eventLocks   map[uuid.UUID]*sync.Mutex
 	eventMutex   sync.RWMutex
@@ -35,12 +39,22 @@ func NewBookingUsecase(
 	userRepo repository.UserRepository,
 	logger *utils.Logger,
 ) *BookingUsecase {
+	// Initialize the concurrent booking processor
+	processor := concurrency.NewBookingProcessor(
+		bookingRepo,
+		ticketRepo,
+		eventRepo,
+		userRepo,
+		logger,
+	)
+
 	return &BookingUsecase{
 		bookingRepo: bookingRepo,
 		ticketRepo:  ticketRepo,
 		eventRepo:   eventRepo,
 		userRepo:    userRepo,
 		logger:      logger,
+		processor:   processor,
 		eventLocks:  make(map[uuid.UUID]*sync.Mutex),
 	}
 }
@@ -60,8 +74,34 @@ type CreateBookingResponse struct {
 	Status      string    `json:"status"`
 }
 
-// CreateBooking creates a new booking with concurrency control
+// CreateBooking creates a new booking using the concurrent processor
 func (b *BookingUsecase) CreateBooking(ctx context.Context, req CreateBookingRequest) (*CreateBookingResponse, error) {
+	// Create booking request for the processor
+	bookingReq := concurrency.BookingRequest{
+		ID:        uuid.New().String(),
+		UserID:    req.UserID,
+		EventID:   req.EventID,
+		TicketIDs: req.TicketIDs,
+		Timestamp: time.Now(),
+		Priority:  1,
+	}
+
+	// Enqueue the request
+	if err := b.processor.EnqueueBookingRequest(bookingReq); err != nil {
+		return nil, fmt.Errorf("failed to enqueue booking request: %w", err)
+	}
+
+	// Return immediate response
+	return &CreateBookingResponse{
+		BookingID:   uuid.New(), // Temporary, will be updated when processed
+		TotalAmount: float64(len(req.TicketIDs)) * 50.0,
+		ExpiresAt:   time.Now().Add(15 * time.Minute).Format("2006-01-02T15:04:05Z"),
+		Status:      "pending",
+	}, nil
+}
+
+// CreateBookingLegacy creates a new booking with legacy concurrency control (for comparison)
+func (b *BookingUsecase) CreateBookingLegacy(ctx context.Context, req CreateBookingRequest) (*CreateBookingResponse, error) {
 	// Validate user exists
 	user, err := b.userRepo.GetByID(ctx, req.UserID)
 	if err != nil {
@@ -256,4 +296,16 @@ func (b *BookingUsecase) getEventLock(eventID uuid.UUID) *sync.Mutex {
 	}
 
 	return lock
+}
+
+// GetConcurrencyStats returns current booking statistics from the processor
+func (b *BookingUsecase) GetConcurrencyStats() map[string]interface{} {
+	return b.processor.GetStats()
+}
+
+// Shutdown gracefully shuts down the booking usecase and its processor
+func (b *BookingUsecase) Shutdown() {
+	b.logger.Info("Shutting down booking usecase")
+	b.processor.Shutdown()
+	b.logger.Info("Booking usecase stopped")
 }

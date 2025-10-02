@@ -14,4 +14,5 @@ func RegisterBookingRoutes(router *mux.Router, bookingController *controllers.Bo
 	router.HandleFunc("/api/bookings/{id}/confirm", bookingController.ConfirmBooking).Methods("POST")
 	router.HandleFunc("/api/bookings/{id}/cancel", bookingController.CancelBooking).Methods("POST")
 	router.HandleFunc("/api/users/{id}/bookings", bookingController.GetUserBookings).Methods("GET")
+	router.HandleFunc("/api/bookings/stats", bookingController.GetStats).Methods("GET")
 }

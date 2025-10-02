@@ -21,7 +21,7 @@ func main() {
 
 	// Initialize logger
 	logger := utils.NewLogger()
-	logger.Info("Starting ticket booking system", "environment", config.Environment)
+	logger.Info("Starting booking system with integrated concurrency", "environment", config.Environment)
 
 	// Initialize database connections
 	postgresClient, err := database.NewPostgresClient(config)
@@ -43,8 +43,19 @@ func main() {
 	logger.Info("Repositories initialized")
 
 	// Initialize usecases
-	usecases := usecase.NewUsecaseContainer(repos, logger)
-	logger.Info("Usecases initialized")
+	userUsecase := usecase.NewUserUsecase(repos.User, repos.UserCache, logger)
+	eventUsecase := usecase.NewEventUsecase(repos.Event, repos.EventCache, repos.Ticket, logger)
+	bookingUsecase := usecase.NewBookingUsecase(repos.Booking, repos.Ticket, repos.Event, repos.User, logger)
+	defer bookingUsecase.Shutdown()
+
+	// Create usecase container
+	usecases := &usecase.UsecaseContainer{
+		User:    userUsecase,
+		Event:   eventUsecase,
+		Booking: bookingUsecase,
+	}
+
+	logger.Info("Usecases initialized with integrated concurrency")
 
 	// Initialize REST delivery
 	restContainer := rest.NewRestContainer(usecases, logger)
@@ -60,12 +71,42 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
+	// Create context for graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", "host", config.ServerHost, "port", config.ServerPort)
+		logger.Info("Starting server with integrated concurrency",
+			"host", config.ServerHost,
+			"port", config.ServerPort,
+			"features", []string{
+				"integrated_concurrency",
+				"ticket_locks_with_expiration",
+				"load_balanced_queues",
+				"race_condition_handling",
+				"automatic_cleanup",
+			})
+
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("Server failed to start", "error", err)
 			os.Exit(1)
+		}
+	}()
+
+	// Start metrics reporting goroutine
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				stats := bookingUsecase.GetConcurrencyStats()
+				logger.Info("Booking concurrency metrics", "stats", stats)
+			}
 		}
 	}()
 
@@ -76,14 +117,17 @@ func main() {
 
 	logger.Info("Shutting down server...")
 
-	// Give outstanding requests 30 seconds to complete
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	// Cancel context to stop background services
+	cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	// Give outstanding requests 30 seconds to complete
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
 
-	logger.Info("Server exited")
+	logger.Info("Server exited gracefully")
 }

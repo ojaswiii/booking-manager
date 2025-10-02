@@ -32,6 +32,7 @@ func (c *BookingController) CreateBooking(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Use concurrent booking for better performance
 	response, err := c.bookingUsecase.CreateBooking(r.Context(), req)
 	if err != nil {
 		c.logger.Error("Failed to create booking", "error", err)
@@ -121,6 +122,12 @@ func (c *BookingController) GetUserBookings(w http.ResponseWriter, r *http.Reque
 	}
 
 	c.respondWithJSON(w, http.StatusOK, bookings)
+}
+
+// GetStats handles GET /api/bookings/stats
+func (c *BookingController) GetStats(w http.ResponseWriter, r *http.Request) {
+	stats := c.bookingUsecase.GetConcurrencyStats()
+	c.respondWithJSON(w, http.StatusOK, stats)
 }
 
 // Helper methods
