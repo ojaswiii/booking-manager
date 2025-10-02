@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -35,7 +36,7 @@ type Config struct {
 
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
-	return &Config{
+	config := &Config{
 		// Server configuration
 		ServerPort: getEnv("SERVER_PORT", "8080"),
 		ServerHost: getEnv("SERVER_HOST", "localhost"),
@@ -43,8 +44,8 @@ func LoadConfig() *Config {
 		// Database configuration
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "password"),
+		DBUser:     getEnv("DB_USER", "ojaswi"),
+		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "ticket_booking"),
 		DBSSLMode:  getEnv("DB_SSL_MODE", "disable"),
 
@@ -61,6 +62,8 @@ func LoadConfig() *Config {
 		// Booking configuration
 		BookingExpiryMinutes: getEnvAsInt("BOOKING_EXPIRY_MINUTES", 15),
 	}
+
+	return config
 }
 
 // getEnv gets an environment variable with a default value
@@ -83,12 +86,11 @@ func getEnvAsInt(key string, defaultValue int) int {
 
 // GetDBConnectionString returns the database connection string
 func (c *Config) GetDBConnectionString() string {
-	return "host=" + c.DBHost +
-		" port=" + c.DBPort +
-		" user=" + c.DBUser +
-		" password=" + c.DBPassword +
-		" dbname=" + c.DBName +
-		" sslmode=" + c.DBSSLMode
+	// Use URL format for more reliable connection
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName, c.DBSSLMode)
+
+	return connStr
 }
 
 // GetRedisAddr returns the Redis address
